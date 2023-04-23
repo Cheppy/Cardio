@@ -1,8 +1,9 @@
 import pyedflib
 
 
-class EDFReader:
+class EDF:
     def __init__(self, edf_path):
+        self.__signals = None
         self.edf_path = edf_path
         self.n_signals = None
         self.labels = None
@@ -23,6 +24,9 @@ class EDFReader:
 
     @property
     def signals_list(self):
+        """"
+        :return: list of signals available in ECG"
+        """
         return self.__signals
 
     def get_signal_by_index(self, signal_index, start=0, end=None):
@@ -38,7 +42,5 @@ class EDFReader:
             return self.__signals[signal_index][start:end]
         else:
             raise ValueError(f"Signal index out of range. Number of signals in the file: {self.n_signals}")
-
-
 
 
