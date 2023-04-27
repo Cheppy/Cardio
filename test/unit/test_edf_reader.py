@@ -1,52 +1,49 @@
 import unittest
-import numpy as np
-import os
-from cardio import ecg_reader
+
+import numpy
+
+from utils.ecg_reader import Signal, BinaryCustom, EDFSignal
 
 
-class TestEDFReader(unittest.TestCase):
+class TestSignal(unittest.TestCase):
 
-    def setUp(self):
-        self.edf_file_path = './test/data/r01.edf'
-        self.edf_entity = ecg_reader.EDF(self.edf_file_path)
+    def test_bad_data_signal(self):
+        """test the data that is written incorrectly, or bad decoded"""
+        with self.assertRaises((UnicodeDecodeError, ValueError, OSError)):
+            signal = Signal("test/data/bad_data.DAT")
 
-    def tearDown(self):
-        pass
+        with self.assertRaises((OSError, UnicodeDecodeError, ValueError)):
+            signal = Signal("test/data/bad_data.edf")
 
-    def test_read_edf(self):
-        # Positive tests
-        self.assertEqual(self.edf_entity.n_signals, 5)
-        self.assertListEqual(self.edf_entity.labels, ['Direct_1', 'Abdomen_1',
-                                                      'Abdomen_2', 'Abdomen_3', 'Abdomen_4'])
+    def test_signal_reader(self):
 
-        self.assertIsInstance(self.edf_entity.signals_list, list)
-        self.assertTrue(lambda: all((isinstance(item, np.ndarray) or list) for item in self.edf_entity.signals_list))
-        self.assertEqual(len(self.edf_entity.signals_list), 5)
+        """Tests signal reader and correct file type"""
+        # Test that the __signalreader method returns the correct SignalReader subclass
+        signal = Signal("test/data/r01.edf")
+        self.assertIsInstance(signal, EDFSignal)
 
-        self.assertIsInstance(self.edf_entity.signals_list[0], np.ndarray or list)
-
-        # Negative tests
-        with self.assertRaises(FileNotFoundError):
-            ecg_reader.EDF('imaginary_file.edf')
-
-
-    def test_get_signal_by_index(self):
-        # Positive tests
-        self.edf_entity.get_signal_by_index(2)
-        signal_0 = self.edf_entity.get_signal_by_index(0)
-        signal_1 = self.edf_entity.get_signal_by_index(1)
-        self.assertIsInstance(signal_0, np.ndarray)
-        self.assertIsInstance(signal_1, np.ndarray)
-
-        # Edge cases
-        signal_0_part = self.edf_entity.get_signal_by_index(0, start=100, end=200)
-        self.assertIsInstance(signal_0_part, np.ndarray)
-        self.assertEqual(signal_0_part.shape[0], 100)
-        signal_0_part = self.edf_entity.get_signal_by_index(0, start=-100)
-        self.assertIsInstance(signal_0_part, np.ndarray)
-
-        signal_1_part = self.edf_entity.get_signal_by_index(1, end=-100)
-        self.assertIsInstance(signal_1_part, np.ndarray)
+        signal = Signal("test/data/TAY_FI.DAT")
+        self.assertIsInstance(signal, BinaryCustom)
 
         with self.assertRaises(ValueError):
-            self.edf_entity.get_signal_by_index(len(self.edf_entity.signals_list)+3)
+            signal = Signal("example.txt")
+
+    def test_edf_signal(self):
+        # Test that the EDFSignal class reads data correctly
+        edf = EDFSignal("test/data/r01.edf")
+        self.assertEqual(edf.n_signals, 5)
+        self.assertEqual(edf.fs[0], 1000.0)
+        self.assertEqual(edf.fs[1], 1000.0)
+        self.assertEqual(len(edf.signals_list[0]), 300000)
+        self.assertEqual(len(edf.signals_list), edf.n_signals)
+
+    def test_DAT_signal(self):
+        # Test that the BinaryCustom class reads data correctly
+        text = BinaryCustom("test/data/TAY_FI.DAT")
+        self.assertEqual(text.n_signals, 1)
+        self.assertEqual(len(text.signals_list), text.n_signals)
+        self.assertEqual(type(text.signals_list[0][1]), numpy.float64)
+
+
+if __name__ == '__main__':
+    unittest.main()
