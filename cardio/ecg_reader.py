@@ -36,10 +36,12 @@ class Signal:
 
 class SignalReader:
     def __init__(self, file_path):
+        self.__file_path = file_path
         self._signals = None
         self.labels = None
         self.header = None
         self.n_signals = None
+        self.times = None
         self.fs = None  # Frequency
         self.read_data(file_path)
 
@@ -66,6 +68,9 @@ class SignalReader:
         signal = self.signals_list[signal_index]
         return signal[start:end]
 
+    def __repr__(self):
+        return f"(FILE: {self.__file_path}, SIGNALS:{self.n_signals})"
+
 
 class EDFSignal(SignalReader):
     def __init__(self, file_path):
@@ -91,6 +96,7 @@ class BinaryCustom(SignalReader):
         """
         points_array = np.loadtxt(file_path)
         self._signals = [points_array[:, 1]]
+        self.times = [points_array[:, 0]]
         self.labels = ["ECG"] * len(self.signals_list)
         # TODO TAY_FI.DAT EXAMPLE OF MORE SIGNALS NEEDED
         # IMPORTANT: .DAT Files could differ

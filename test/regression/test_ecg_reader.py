@@ -1,6 +1,6 @@
 import datetime
 
-from utils import ecg_reader as ecgread
+from cardio import ecg_reader as ecgread
 
 
 def test_ecg_reader_read():
