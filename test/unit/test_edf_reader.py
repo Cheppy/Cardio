@@ -2,7 +2,7 @@ import unittest
 
 import numpy
 
-from utils.ecg_reader import Signal, BinaryCustom, EDFSignal
+from cardio.ecg_reader import Signal, BinaryCustom, EDFSignal
 
 
 class TestSignal(unittest.TestCase):
